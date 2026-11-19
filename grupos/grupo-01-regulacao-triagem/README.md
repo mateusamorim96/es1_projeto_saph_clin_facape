@@ -7,10 +7,10 @@
 
 | Nome | Matrícula | Papel no grupo |
 | --- | --- | --- |
-| *preencher* | | requisitos |
-| *preencher* | | modelagem estrutural |
-| *preencher* | | modelagem comportamental |
-| *preencher* | | testes e rastreabilidade |
+| Gabriel Bezerra |26729| requisitos |
+| Paulo Henrique |26633 | modelagem estrutural |
+| Pedro Hebert |26581| modelagem comportamental |
+| Isaque Bispo |26593| testes e rastreabilidade |
 
 ## Escopo do módulo (E1)
 

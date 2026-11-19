@@ -20,11 +20,11 @@
 
 | RNF | Métrica e alvo | Como é verificado | Status |
 | --- | --- | --- | --- |
-| RNF-G01-01 | Acolhimento concluído em ≤ 90 s no fluxo principal | | pendente |
-| RNF-G01-02 | Triagem disponível mesmo com falha de rede local (registro offline) | | pendente |
-| RNF-G01-03 | Dado do solicitante protegido por perfil de acesso (LGPD) | | pendente |
-| RNF-G01-04 | Reclassificação visível no histórico em ≤ 3 s | | pendente |
-| RNF-G01-05 | Vocabulário de queixa alinhado ao glossário do domínio | | pendente |
+| RNF-G01-01 | Acolhimento concluído em ≤ 90 s no fluxo principal | xecutar testes de usabilidade E2E cronometrados com operadores e medir o tempo de resposta da API (p95 ≤ 2s) | A revisar |
+| RNF-G01-02 | Triagem disponível mesmo com falha de rede local (registro offline) | Simular desconexão de rede durante a operação, validando o salvamento local e a sincronização posterior idempotente ao reconectar. | pendente |
+| RNF-G01-03 | Dado do solicitante protegido por perfil de acesso (LGPD) | Executar testes automatizados de autorização na API por perfil (RBAC) garantindo mascaramento de dados e ausência de informações sensíveis nos logs. | pendente |
+| RNF-G01-04 | Reclassificação visível no histórico em ≤ 3 s | Aplicar testes de carga (k6/JMeter) na API e medir a atualização em tempo real no painel do cliente via WebSockets. | pendente |
+| RNF-G01-05 | Vocabulário de queixa alinhado ao glossário do domínio | Forçar validação de entrada por dicionário controlado na interface e realizar auditoria estática de conformidade na base de dados. | pendente |
 
 ## Contratos consumidos
 
