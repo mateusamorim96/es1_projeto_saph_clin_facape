@@ -93,7 +93,7 @@
 
 | Entidade | Dado | Origem |
 | --- | --- | --- |
-| RecusaAtendimento | motivo, riscos informados, estado, testemunha, ciência | este módulo (a confirmar no M2 como entidade própria) |
+| RecusaAtendimento | motivo, riscos informados, estado, testemunha, ciência | este módulo (entidade própria, ADR-G03-04) |
 | AssinaturaDigital | evidência de autoria | G6 (por referência) |
 | Prontuario | `prontuario_id`, sinal de recusa | este módulo |
 
@@ -108,5 +108,5 @@
 
 | RF | Classe | Sequência | Teste |
 | --- | --- | --- | --- |
-| RF-G03-12 | pendente (M2) | pendente (M2) | pendente (M3) |
-| RF-G03-13 | pendente (M2) | pendente (M2) | pendente (M3) |
+| RF-G03-12 | RecusaAtendimento | DS-G03-05, ME-G03-03, DA-G03-02 | CT-G03-05 |
+| RF-G03-13 | RecusaAtendimento, PublicacaoEvento | DS-G03-05 | CT-G03-05 |

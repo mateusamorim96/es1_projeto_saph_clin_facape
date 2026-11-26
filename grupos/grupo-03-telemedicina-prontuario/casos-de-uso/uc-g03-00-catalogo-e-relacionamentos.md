@@ -1,8 +1,8 @@
 # Catálogo de Casos de Uso e Relacionamentos — G03
 
-> Visão geral dos 8 casos de uso do módulo (E3). UC-G03-01 a UC-G03-04 têm especificação textual
-> completa em arquivos próprios. UC-G03-05 a UC-G03-08 são resumidos aqui; a especificação textual deles
-> não é exigida no M1 e pode ser expandida no M2.
+> Visão geral dos 8 casos de uso do módulo (E3). Sete têm especificação textual em arquivo próprio
+> (`uc-g03-01` a `uc-g03-05`, `uc-g03-07` e `uc-g03-08`); UC-G03-06 está detalhado aqui e no fluxo
+> FA-02 de UC-G03-02.
 > Diagrama: [`../diagramas/diagrama-casos-de-uso-g03.puml`](../diagramas/diagrama-casos-de-uso-g03.puml)
 > (exportação: `.svg` e `.png` na mesma pasta).
 
@@ -26,10 +26,10 @@
 | UC-G03-02 | Preencher Ficha Pré-Hospitalar | EquipeIntervencao | completa | base de três `<<extend>>` | RF-G03-03, RF-G03-04, RF-G03-05, RF-G03-07 |
 | UC-G03-03 | Solicitar Pré-Admissão | MedicoRegulador | completa (fluxo crítico) | `<<include>>` UC-G03-05 | RF-G03-09, RF-G03-10, RF-G03-11 |
 | UC-G03-04 | Registrar Recusa de Atendimento | EquipeIntervencao | completa | `<<extend>>` UC-G03-02 | RF-G03-12, RF-G03-13 |
-| UC-G03-05 | Validar Prioridade | Sistema | resumida | incluído por UC-G03-03 | RF-G03-10 |
+| UC-G03-05 | Validar Prioridade | Sistema | completa | incluído por UC-G03-03 | RF-G03-10 |
 | UC-G03-06 | Registrar Consumo de Fármaco | EquipeIntervencao | resumida | `<<extend>>` UC-G03-02 | RF-G03-06 |
-| UC-G03-07 | Consultar Ficha Pré-Hospitalar | MedicoRegulador, EquipeIntervencao, EquipeReceptora | resumida | autônomo | RF-G03-14, RF-G03-15 |
-| UC-G03-08 | Sincronizar Ficha após Reconexão | Sistema | resumida | `<<extend>>` UC-G03-02 | RF-G03-07, RF-G03-08 |
+| UC-G03-07 | Consultar Ficha Pré-Hospitalar | MedicoRegulador, EquipeIntervencao, EquipeReceptora | completa | autônomo | RF-G03-14, RF-G03-15 |
+| UC-G03-08 | Sincronizar Ficha após Reconexão | Sistema | completa | `<<extend>>` UC-G03-02 | RF-G03-07, RF-G03-08 |
 
 Cobertura: os 15 RF têm ao menos um caso de uso (conferir na matriz de rastreabilidade).
 
@@ -45,28 +45,11 @@ Cobertura: os 15 RF têm ao menos um caso de uso (conferir na matriz de rastreab
 Por que não `<<include>>` nesses três: o preenchimento da ficha é completo sem recusa, sem fármaco e sem
 sincronização pendente. Se fossem `<<include>>`, qualquer preenchimento teria de passar por eles.
 
-## 4. Resumos dos casos de uso não detalhados
-
-### UC-G03-05 — Validar Prioridade
-
-- **Objetivo:** garantir que o pedido de pré-admissão carrega a prioridade vigente do chamado (herdada de G1) e que os campos do C3 estão completos.
-- **Verificações:** a prioridade existe e é a vigente; há ao menos um registro de sinais vitais; `necessidade` é `SALA_VERMELHA` ou `OBSERVACAO`; `eta_hospital` está preenchido.
-- **Exceção principal:** qualquer verificação falha: o envio é bloqueado e o campo faltante é indicado. A prioridade nunca é editável aqui.
+## 4. Resumo do caso de uso não detalhado
 
 ### UC-G03-06 — Registrar Consumo de Fármaco
 
 - **Objetivo:** registrar o fármaco administrado e publicar o C4 `consumo_farmaco` para G5.
 - **Dados:** `item_id`, `lote`, `quantidade`, `via`, `horario`, `responsavel_id`, `prontuario_id`.
-- **Exceção principal:** lote ausente: a gravação é bloqueada e o C4 não sai. A baixa de estoque é de G5.
-
-### UC-G03-07 — Consultar Ficha Pré-Hospitalar
-
-- **Objetivo:** permitir a leitura da ficha por quem precisa dela, com controle de perfil e registro de cada acesso.
-- **Regra de acesso:** `EquipeIntervencao` só vê fichas do seu `equipe_id`; `EquipeReceptora`, só com pré-admissão enviada; `MedicoRegulador`, dos chamados que regula.
-- **Exceção principal:** acesso fora do perfil: negado e registrado como `PRONTUARIO_ACESSADO` com `resultado = NEGADO`.
-
-### UC-G03-08 — Sincronizar Ficha após Reconexão
-
-- **Objetivo:** enviar os registros pendentes depois que a conexão volta, sem duplicar nem perder.
-- **Regras:** ordem pelo horário do fato; reenvio do mesmo `evento_id` não cria cópia (ARQ §6).
-- **Exceção principal:** nova queda durante a sincronização: os registros não confirmados continuam pendentes.
+- **Fluxo:** ver FA-02 de [`uc-g03-02`](uc-g03-02-preencher-ficha-pre-hospitalar.md).
+- **Exceção principal:** lote ausente bloqueia a gravação e o C4 não sai. A baixa de estoque é de G5.

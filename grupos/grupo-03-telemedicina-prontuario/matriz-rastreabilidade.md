@@ -78,6 +78,15 @@
 | C4 `consumo_farmaco` | G5 | `lote`, `item_id`, `prontuario_id` | estável |
 | C5 `evento_sensivel` (3 tipos) | G6 | `evento_id`, `tipo`, `ator_id`, `resultado` | estável, com Q5 em aberto |
 
+## Rastreio a indicadores de G06 (bônus)
+
+| RF | Indicador de G06 | Como o requisito alimenta o indicador |
+| --- | --- | --- |
+| RF-G03-11 | Taxa de reserva negada | cada pedido e seu desfecho ficam registrados e contáveis |
+| RF-G03-09 | Tempo porta-leito | horário de envio do pedido e ETA ao hospital |
+| RF-G03-01 | Tempo de resposta | horário do fato da teleorientação |
+| RF-G03-15 | Auditoria de acesso a prontuário | cada acesso gera evento `PRONTUARIO_ACESSADO` |
+
 ## Pendências e riscos
 
 | Item | Impacto | Prazo interno |

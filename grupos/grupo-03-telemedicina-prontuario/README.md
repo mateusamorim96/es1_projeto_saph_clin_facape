@@ -8,9 +8,9 @@
 
 | Nome | Matrícula | Papel no grupo (proposta, o grupo ajusta) |
 | --- | --- | --- |
-| Luccas | a informar | requisitos e escopo (E1, E2) |
-| Tulio | a informar | casos de uso e diagramas (E3) |
-| Geliton | a informar | rastreabilidade, testes e relatório (E6, E7) |
+| Luccas Amaro de Castro Alencar | 26249 | requisitos e escopo (E1, E2) |
+| Tulio Alves Torres | 26831 | casos de uso e diagramas (E3) |
+| Geliton Fernandes de Almeida Filho | 26643 | rastreabilidade, testes e relatório (E6, E7) |
 
 Cada integrante deve ter commits reais no PR (regra de avaliação do professor).
 
@@ -75,7 +75,7 @@ transforma esse registro em um pedido de pré-admissão enviado **antes** de a a
 | E2 Catálogo de requisitos (15 RF, 8 RNF) | [`requisitos.md`](requisitos.md) |
 | E3 Diagrama de casos de uso (fonte e exportação) | [`diagramas/diagrama-casos-de-uso-g03.puml`](diagramas/diagrama-casos-de-uso-g03.puml), `.svg`, `.png` |
 | E3 Catálogo de casos de uso, relacionamentos e justificativas | [`casos-de-uso/uc-g03-00-catalogo-e-relacionamentos.md`](casos-de-uso/uc-g03-00-catalogo-e-relacionamentos.md) |
-| E3 Especificação textual (UC-G03-01 a 04) | [`casos-de-uso/`](casos-de-uso/) |
+| E3 Especificação textual (UC-G03-01 a 08) | [`casos-de-uso/`](casos-de-uso/) |
 | E4 Diagrama de classes de domínio (9 classes, herança de `RegistroClinico`) | [`diagramas/diagrama-classes-g03.puml`](diagramas/diagrama-classes-g03.puml), `.svg`, `.png` |
 | E4 Dicionário de dados | [`dicionario-de-dados.md`](dicionario-de-dados.md) |
 | E5 Diagramas de sequência (6, com exceções e indisponibilidades) | [`diagramas/ds-g03-*.puml`](diagramas/) |
@@ -98,6 +98,8 @@ transforma esse registro em um pedido de pré-admissão enviado **antes** de a a
 - Recusa sem evidência de assinatura (RN-10).
 - Pré-admissão recalculando prioridade em vez de herdar.
 - Tratar o consentimento de telemedicina como obrigatório em emergência (a norma o dispensa; ver P5).
+- Bloquear o registro clínico por regra de estoque (P-04).
+- Sobrescrever registros em vez de versionar (ADR-G03-02).
 
 ## Estado da entrega
 
@@ -116,6 +118,7 @@ Atualize esta tabela a cada PR: é o primeiro lugar onde o professor olha.
 ## Como rodar a validação local
 
 ```bash
+python3 scripts/check_entrega.py --grupo grupo-03-telemedicina-prontuario --marco M1
 python3 scripts/check_entrega.py --grupo grupo-03-telemedicina-prontuario --marco M2
 ```
 
