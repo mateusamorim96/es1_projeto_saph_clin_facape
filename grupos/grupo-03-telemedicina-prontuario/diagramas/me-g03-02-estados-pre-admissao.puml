@@ -1,0 +1,45 @@
+@startuml me-g03-02-estados-pre-admissao
+title ME-G03-02 – Ciclo de vida da PreAdmissao
+skinparam shadowing false
+skinparam defaultFontName DejaVu Sans
+skinparam stateBackgroundColor #FFFFFF
+skinparam stateBorderColor #5F6368
+hide empty description
+
+state "Rascunho" as RAS
+state "Pendente de Envio" as PEN
+state "Enviada" as ENV
+state "Confirmada" as CON
+state "Negada" as NEG
+state "Sem Resposta" as SEM
+state "Substituída" as SUB
+
+[*] --> RAS : regulador aciona\n"Solicitar pré-admissão"
+
+RAS --> RAS : validação falha (FE-02)\ncampo faltante indicado
+RAS --> ENV : confirmar envio, com conexão\n[validação aprovada] / publicar C3
+RAS --> PEN : confirmar envio, sem conexão\n[validação aprovada] (FE-03)
+
+PEN --> ENV : conexão restabelecida / publicar C3\ncom o mesmo evento_id
+
+ENV --> CON : G4 responde reservado
+ENV --> NEG : G4 responde negado(motivo)\n(FE-01)
+ENV --> SEM : prazo sem resposta\n(FE-04, premissa 60 s)
+ENV --> SUB : novo pedido por mudança\nde necessidade (FA-01)
+
+SEM --> ENV : reenvio manual
+SEM --> CON : resposta tardia reservado
+SEM --> NEG : resposta tardia negado
+
+CON --> SUB : novo pedido por deterioração\nclínica (FA-01)
+
+NEG --> [*]
+SUB --> [*]
+CON --> [*] : ficha Encerrada
+
+note right of NEG
+  Negada preserva o motivo.
+  A ficha volta a Em Preenchimento
+  e o regulador decide o desvio.
+end note
+@enduml

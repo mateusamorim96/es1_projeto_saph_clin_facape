@@ -1,0 +1,39 @@
+@startuml ds-g03-02-solicitar-pre-admissao
+title DS-G03-02 – Solicitar Pré-Admissão: fluxo principal (UC-G03-03, UC-G03-05, UC-G03-07)
+skinparam shadowing false
+skinparam defaultFontName DejaVu Sans
+skinparam sequenceMessageAlign center
+autonumber
+
+actor MedicoRegulador as Reg
+participant ":Prontuario" as Pr
+participant ":PreAdmissao" as Pa
+participant "Leitos (G4)" as G4
+actor EquipeReceptora as Rec
+participant "Auditoria (G6)" as G6
+
+Reg -> Pr : solicitarPreAdmissao(prontuario_id)
+Pr --> Reg : resumo: prioridade (somente leitura),\núltimo sinal vital, procedimentos, fármacos
+Reg -> Pa : informar(necessidade, eta_hospital)
+note over Pa : estado = RASCUNHO
+
+group <<include>> Validar Prioridade (UC-G03-05)
+  Pa -> Pr : obterPrioridadeVigente()
+  Pr --> Pa : prioridade_herdada\n(não recalculada)
+  Pa -> Pa : verificar sinais vitais, necessidade e ETA
+end
+
+Reg -> Pa : confirmarEnvio()
+Pa -> Pa : estado = ENVIADA\n(evento_id gerado)
+Pa -> Pr : marcar AGUARDANDO_LEITO
+Pa -> G4 : pedido_pre_admissao (C3)\nprontuario_id, chamado_id, prioridade,\nnecessidade, sinais_vitais, eta_hospital
+G4 --> Pa : reservado (reserva_ref)
+Pa -> Pa : estado = CONFIRMADA
+Pa -> Pr : marcar LEITO_CONFIRMADO
+Pa --> Reg : pré-admissão confirmada
+
+G4 -> Rec : alerta de transferência\n(emitido por G4)
+Rec -> Pr : abrirFicha(prontuario_id)
+Pr -> G6 : evento_sensivel(PRONTUARIO_ACESSADO,\nresultado = SUCESSO)
+Pr --> Rec : ficha consolidada\n(sem redigitação)
+@enduml

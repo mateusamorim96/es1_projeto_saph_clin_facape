@@ -1,0 +1,32 @@
+@startuml me-g03-03-estados-recusa-atendimento
+title ME-G03-03 – Ciclo de vida da RecusaAtendimento
+skinparam shadowing false
+skinparam defaultFontName DejaVu Sans
+skinparam stateBackgroundColor #FFFFFF
+skinparam stateBorderColor #5F6368
+hide empty description
+
+state "Rascunho" as RAS
+state "Assinada" as ASS
+state "Não Assinada" as NAS
+state "Revogada" as REV
+
+[*] --> RAS : consciência confirmada\n(sem confirmação, a recusa não é criada: FE-02)
+
+RAS --> RAS : evidência faltante (FE-01)
+RAS --> ASS : paciente ou representante assina,\ntestemunha assina e regulador dá ciência\n(RN-10) / publicar RECUSA_ASSINADA
+RAS --> NAS : paciente se recusa a assinar,\ntestemunha e ciência presentes\n(FA-02, ADR-G03-04)
+
+ASS --> REV : paciente aceita o atendimento\n(FA-03)
+NAS --> REV : paciente aceita o atendimento\n(FA-03)
+
+REV --> [*]
+ASS --> [*] : ficha Encerrada
+NAS --> [*] : ficha Encerrada
+
+note right of NAS
+  Não satisfaz a RN-10.
+  Não publica RECUSA_ASSINADA.
+  Alerta o regulador.
+end note
+@enduml

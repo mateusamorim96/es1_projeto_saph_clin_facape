@@ -1,0 +1,227 @@
+@startuml diagrama-classes-g03
+title G03 – Diagrama de classes de domínio (M2, v1.0)
+skinparam shadowing false
+skinparam defaultFontName DejaVu Sans
+skinparam classAttributeIconSize 0
+skinparam classBackgroundColor #FFFFFF
+skinparam classBorderColor #5F6368
+skinparam noteBackgroundColor #FFF8E1
+hide empty methods
+
+class Prontuario {
+  prontuario_id : IdProntuario {id}
+  chamado_id : IdChamado «G1»
+  despacho_id : IdDespacho «G2» {único}
+  equipe_id : IdEquipe «G2»
+  prioridade_herdada : Prioridade {somente leitura}
+  prioridade_atualizada_em : DataHora
+  estado : EstadoProntuario
+  aberto_em : DataHora
+  encerrado_em : DataHora [0..1]
+}
+
+abstract class RegistroClinico {
+  registro_id : IdRegistro {id}
+  responsavel_id : IdUsuario
+  ocorrido_em : DataHora
+  registrado_em : DataHora
+  sincronizacao : EstadoSincronizacao
+  versao : Inteiro {≥ 1}
+  substitui_id : IdRegistro [0..1]
+  motivo_correcao : Texto [0..1]
+  sinalizado_para_revisao : Booleano
+}
+
+class RegistroSinaisVitais {
+  frequencia_cardiaca_bpm : Inteiro [0..1]
+  pressao_sistolica_mmhg : Inteiro [0..1]
+  pressao_diastolica_mmhg : Inteiro [0..1]
+  frequencia_respiratoria_irpm : Inteiro [0..1]
+  saturacao_o2_pct : Inteiro [0..1]
+  temperatura_c : Decimal [0..1]
+  glicemia_mgdl : Inteiro [0..1]
+  escala_glasgow : Inteiro [0..1]
+}
+
+class Procedimento {
+  tipo : Texto
+  descricao : Texto [0..1]
+}
+
+class ConsumoFarmaco {
+  item_id : IdItem «G5»
+  lote : Texto
+  quantidade : Decimal {> 0}
+  unidade : Texto
+  via : ViaAdministracao
+  evento_id : IdEvento
+}
+
+class Teleorientacao {
+  teleorientacao_id : IdTeleorientacao {id}
+  chamado_id : IdChamado «G1»
+  despacho_id : IdDespacho «G2» [0..1]
+  medico_id : IdUsuario
+  medico_nome : Texto
+  medico_crm : Texto
+  destinatario_tipo : DestinatarioTipo
+  destinatario_nome : Texto [0..1]
+  destinatario_vinculo : Texto [0..1]
+  conteudo : Texto
+  ocorrida_em : DataHora
+  registrada_em : DataHora
+  emitida_por_telemedicina : Booleano {= verdadeiro}
+  desvio_sem_viatura : Booleano
+  retifica_id : IdTeleorientacao [0..1]
+}
+
+class PreAdmissao {
+  pre_admissao_id : IdPreAdmissao {id}
+  prioridade : Prioridade {cópia no envio}
+  necessidade : Necessidade
+  eta_hospital : Duracao
+  estado : EstadoPreAdmissao
+  motivo_negativa : Texto [0..1]
+  solicitada_por : IdUsuario
+  criada_em : DataHora
+  enviada_em : DataHora [0..1]
+  respondida_em : DataHora [0..1]
+  evento_id : IdEvento [0..1]
+  reserva_ref : IdReserva «G4» [0..1]
+  substitui_id : IdPreAdmissao [0..1]
+}
+
+class RecusaAtendimento {
+  recusa_id : IdRecusa {id}
+  estado : EstadoRecusa
+  consciencia_confirmada : Booleano {= verdadeiro}
+  riscos_informados : Texto
+  motivo : Texto
+  assinante_tipo : AssinanteTipo
+  representante_vinculo : Texto [0..1]
+  testemunha_nome : Texto
+  testemunha_vinculo : Texto
+  assinatura_paciente_id : IdAssinatura «G6» [0..1]
+  assinatura_testemunha_id : IdAssinatura «G6» [0..1]
+  ciencia_regulador_id : IdAssinatura «G6» [0..1]
+  motivo_sem_assinatura : Texto [0..1]
+  registrada_em : DataHora
+  revogada_em : DataHora [0..1]
+  motivo_revogacao : Texto [0..1]
+}
+
+class PublicacaoEvento {
+  evento_id : IdEvento {id}
+  tipo : TipoEvento
+  ator_id : IdUsuario
+  papel : Papel
+  entidade : Texto
+  entidade_id : Identificador
+  ocorrido_em : DataHora
+  resultado : ResultadoEvento
+  justificativa : Texto [0..1]
+  estado_entrega : EstadoEntrega
+  tentativas : Inteiro
+}
+
+Prontuario "1" *-- "0..*" RegistroClinico : contém
+RegistroClinico <|-- RegistroSinaisVitais
+RegistroClinico <|-- Procedimento
+RegistroClinico <|-- ConsumoFarmaco
+RegistroClinico "0..1" <-- "0..1" RegistroClinico : substitui
+Prontuario "1" *-- "0..*" PreAdmissao : solicita
+Prontuario "1" *-- "0..*" RecusaAtendimento : registra
+Prontuario "0..1" o-- "0..*" Teleorientacao : exibe
+Teleorientacao "0..1" <-- "0..1" Teleorientacao : retifica
+PreAdmissao "0..*" --> "1" RegistroSinaisVitais : último registro enviado
+PreAdmissao "0..1" <-- "0..1" PreAdmissao : substitui
+
+Teleorientacao ..> PublicacaoEvento : gera
+RecusaAtendimento ..> PublicacaoEvento : gera
+Prontuario ..> PublicacaoEvento : acesso gera
+
+enum Prioridade {
+  VERMELHO
+  LARANJA
+  AMARELO
+  VERDE
+  AZUL
+}
+enum Necessidade {
+  SALA_VERMELHA
+  OBSERVACAO
+}
+enum EstadoProntuario {
+  ABERTO
+  EM_PREENCHIMENTO
+  AGUARDANDO_LEITO
+  LEITO_CONFIRMADO
+  RECUSADO
+  ENCERRADO
+}
+enum EstadoPreAdmissao {
+  RASCUNHO
+  PENDENTE_DE_ENVIO
+  ENVIADA
+  CONFIRMADA
+  NEGADA
+  SEM_RESPOSTA
+  SUBSTITUIDA
+}
+enum EstadoRecusa {
+  RASCUNHO
+  ASSINADA
+  NAO_ASSINADA
+  REVOGADA
+}
+enum EstadoSincronizacao {
+  PENDENTE
+  SINCRONIZADO
+}
+enum EstadoEntrega {
+  PENDENTE
+  ENTREGUE
+}
+enum TipoEvento {
+  TELEORIENTACAO_REGISTRADA
+  RECUSA_ASSINADA
+  PRONTUARIO_ACESSADO
+}
+enum ResultadoEvento {
+  SUCESSO
+  NEGADO
+  ERRO
+}
+enum Papel {
+  MEDICO_REGULADOR
+  EQUIPE_INTERVENCAO
+  EQUIPE_RECEPTORA
+}
+enum DestinatarioTipo {
+  EQUIPE
+  ACOMPANHANTE
+  SOLICITANTE
+}
+enum AssinanteTipo {
+  PACIENTE
+  REPRESENTANTE_LEGAL
+}
+enum ViaAdministracao {
+  INTRAVENOSA
+  INTRAMUSCULAR
+  SUBCUTANEA
+  ORAL
+  SUBLINGUAL
+  INALATORIA
+  OUTRA
+}
+
+note as N1
+  <b>Referências a outros módulos</b>
+  Tipos marcados «G1», «G2», «G4», «G5» e «G6» são apenas
+  identificadores de entidades que pertencem a esses módulos.
+  Este módulo não os modela como classes (regra de coerência 1).
+  <b>PublicacaoEvento</b> é fila de entrega de eventos (C5), não trilha
+  de auditoria. A trilha imutável é de G6 (regra de coerência 5).
+end note
+@enduml

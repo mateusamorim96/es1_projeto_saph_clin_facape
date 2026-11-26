@@ -1,0 +1,38 @@
+@startuml ds-g03-01-registrar-teleorientacao
+title DS-G03-01 – Registrar Teleorientação (UC-G03-01) · inclui exceções FE-01 e FE-03
+skinparam shadowing false
+skinparam defaultFontName DejaVu Sans
+skinparam sequenceMessageAlign center
+autonumber
+
+actor MedicoRegulador as Reg
+participant "Telemedicina (G3)" as G3
+participant "Auditoria (G6)" as G6
+
+Reg -> G3 : selecionarChamado(chamado_id)
+G3 --> Reg : identificação do chamado e do despacho,\nteleorientações anteriores
+Reg -> G3 : registrar(destinatário, conteúdo)
+G3 -> G3 : validar campos obrigatórios\ne estado do chamado
+
+alt destinatário ou conteúdo ausente (FE-01)
+  G3 --> Reg : bloqueia a gravação\ne indica o campo faltante
+else chamado cancelado ou encerrado (FE-02)
+  G3 --> Reg : rejeita e informa o estado do chamado
+else dados válidos
+  G3 -> G3 : gravar Teleorientacao\n(autor, ocorrida_em, registrada_em,\nemitida_por_telemedicina = verdadeiro)
+  G3 -> G3 : criar PublicacaoEvento\n(TELEORIENTACAO_REGISTRADA, PENDENTE)
+  G3 --> Reg : confirmação\n(orientação visível na ficha)
+  G3 -> G6 : evento_sensivel(evento_id,\nTELEORIENTACAO_REGISTRADA)
+  alt G6 disponível
+    G6 --> G3 : recebido
+    G3 -> G3 : estado_entrega = ENTREGUE
+  else G6 indisponível (FE-03)
+    note right of G3
+      A teleorientação já está gravada.
+      O evento segue PENDENTE e é
+      reentregue com o mesmo evento_id.
+      O atendimento não é bloqueado.
+    end note
+  end
+end
+@enduml

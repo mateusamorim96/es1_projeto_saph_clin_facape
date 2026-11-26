@@ -1,0 +1,55 @@
+@startuml da-g03-01-solicitar-pre-admissao
+title DA-G03-01 – Decisões do fluxo "Solicitar Pré-Admissão" (UC-G03-03 e UC-G03-05)
+skinparam shadowing false
+skinparam defaultFontName DejaVu Sans
+skinparam activityBackgroundColor #FFFFFF
+skinparam activityBorderColor #5F6368
+
+|MedicoRegulador|
+start
+:Aciona "Solicitar pré-admissão";
+|Sistema G3|
+:Exibe resumo da ficha\n(prioridade somente leitura);
+|MedicoRegulador|
+:Informa necessidade (SALA_VERMELHA ou OBSERVACAO)\ne eta_hospital;
+|Sistema G3|
+partition "Validar Prioridade (UC-G03-05)" {
+  if (Existe ao menos um registro\nde sinais vitais?) then (não)
+    :Bloqueia o envio\ne indica o campo faltante;
+    stop
+  endif
+  if (Prioridade vigente do chamado\nestá disponível?) then (não)
+    :Bloqueia o envio\n(prioridade nunca é editada aqui);
+    stop
+  endif
+  if (Necessidade e eta_hospital\nestão preenchidos?) then (não)
+    :Bloqueia o envio\ne indica o campo faltante;
+    stop
+  endif
+}
+|MedicoRegulador|
+:Confirma o envio;
+|Sistema G3|
+if (Há conexão?) then (não)
+  :PreAdmissao = PENDENTE_DE_ENVIO\nalerta a equipe;
+  :Aguarda reconexão\n(reenvio automático, mesmo evento_id);
+else (sim)
+endif
+:PreAdmissao = ENVIADA\nPublica C3 para G4;
+|G4 Leitos|
+:Avalia o pedido (RN-05 e RN-06 são de G4);
+if (Resposta de G4 dentro do prazo?) then (reservado)
+  |Sistema G3|
+  :PreAdmissao = CONFIRMADA\nFicha = LEITO_CONFIRMADO;
+  :Libera a ficha à EquipeReceptora;
+elseif (negado) then (negado)
+  |Sistema G3|
+  :PreAdmissao = NEGADA\nregistra o motivo;
+  |MedicoRegulador|
+  :Decide o desvio\n(nova teleorientação ou novo pedido);
+else (sem resposta)
+  |Sistema G3|
+  :PreAdmissao = SEM_RESPOSTA\nalerta e oferece reenvio manual;
+endif
+stop
+@enduml

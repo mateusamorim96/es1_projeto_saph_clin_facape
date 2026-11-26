@@ -1,0 +1,48 @@
+@startuml ds-g03-05-registrar-recusa
+title DS-G03-05 – Registrar Recusa de Atendimento (UC-G03-04) · inclui FA-02, FE-01 e FE-02
+skinparam shadowing false
+skinparam defaultFontName DejaVu Sans
+skinparam sequenceMessageAlign center
+autonumber
+
+actor EquipeIntervencao as Eq
+actor "Paciente ou\nrepresentante" as Pac
+actor Testemunha as Tes
+actor MedicoRegulador as Reg
+participant ":RecusaAtendimento" as Rc
+participant ":Prontuario" as Pr
+participant "Auditoria (G6)" as G6
+
+Eq -> Rc : iniciarRecusa(prontuario_id)
+note over Rc : estado = RASCUNHO
+Rc --> Eq : pede confirmação de consciência\ne riscos informados
+Eq -> Rc : confirmarConsciencia(riscos, motivo)
+
+alt consciência não confirmada (FE-02)
+  Rc --> Eq : impede o registro,\norienta continuidade do atendimento
+else consciência confirmada
+  Eq -> Rc : registrarTestemunha(nome, vínculo)
+  Pac -> Rc : assinar
+  Rc -> G6 : registrarAssinatura(PACIENTE, recusa_id)
+  G6 --> Rc : assinatura_paciente_id
+  Tes -> Rc : assinar
+  Rc -> G6 : registrarAssinatura(TESTEMUNHA, recusa_id)
+  G6 --> Rc : assinatura_testemunha_id
+  Reg -> Rc : dar ciência
+  Rc -> G6 : registrarAssinatura(CIENCIA_REGULADOR, recusa_id)
+  G6 --> Rc : ciencia_regulador_id
+
+  alt três evidências presentes (RN-10)
+    Rc -> Rc : estado = ASSINADA
+    Rc -> Pr : marcar RECUSADO
+    Rc -> G6 : evento_sensivel(RECUSA_ASSINADA,\njustificativa = motivo)
+    Rc --> Eq : recusa concluída
+  else paciente não quer assinar (FA-02)
+    Rc -> Rc : estado = NAO_ASSINADA\n(motivo_sem_assinatura, testemunha, ciência)
+    Rc --> Eq : recusa registrada sem assinatura
+    note right of Rc : Não publica RECUSA_ASSINADA.\nTratamento em ADR-G03-04.
+  else evidência incompleta (FE-01)
+    Rc --> Eq : permanece em RASCUNHO,\nindica a evidência faltante
+  end
+end
+@enduml

@@ -1,0 +1,33 @@
+@startuml ds-g03-06-consultar-ficha-acesso
+title DS-G03-06 – Consultar ficha com controle de perfil (UC-G03-07) · acesso permitido e negado
+skinparam shadowing false
+skinparam defaultFontName DejaVu Sans
+skinparam sequenceMessageAlign center
+autonumber
+
+actor "Usuário\n(MedicoRegulador, EquipeIntervencao\nou EquipeReceptora)" as U
+participant ":Prontuario" as Pr
+participant "Auditoria (G6)" as G6
+
+U -> Pr : abrirFicha(prontuario_id)
+Pr -> Pr : verificar perfil e finalidade\n(RN-11)
+
+alt perfil e vínculo permitidos
+  note over Pr
+    EquipeIntervencao: mesmo equipe_id do despacho
+    EquipeReceptora: só com pré-admissão enviada
+    MedicoRegulador: chamado sob sua regulação
+  end note
+  Pr -> G6 : evento_sensivel(PRONTUARIO_ACESSADO,\nresultado = SUCESSO)
+  Pr --> U : ficha
+else perfil sem vínculo com o atendimento
+  Pr -> G6 : evento_sensivel(PRONTUARIO_ACESSADO,\nresultado = NEGADO)
+  Pr --> U : acesso negado\n(nenhum dado clínico é exibido)
+end
+
+note over Pr, G6
+  A publicação do evento não bloqueia a leitura:
+  se G6 estiver indisponível, o evento fica PENDENTE
+  e é reentregue com o mesmo evento_id.
+end note
+@enduml

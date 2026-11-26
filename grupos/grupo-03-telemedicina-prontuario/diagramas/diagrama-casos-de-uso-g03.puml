@@ -1,0 +1,52 @@
+@startuml diagrama-casos-de-uso-g03
+left to right direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam defaultFontName DejaVu Sans
+
+title G03 – Telemedicina e Prontuário Pré-Hospitalar: casos de uso (M1, v1.0)
+
+actor "MedicoRegulador" as regulador
+actor "EquipeIntervencao" as equipe
+actor "EquipeReceptora" as receptora
+actor "Módulo G2 Despacho" as g2 <<módulo>>
+actor "Módulo G4 Leitos" as g4 <<módulo>>
+actor "Módulo G5 Estoque" as g5 <<módulo>>
+actor "Módulo G6 Auditoria" as g6 <<módulo>>
+
+rectangle "SAPH-Clin – M2 Telemedicina (G03)" {
+  usecase "UC-G03-01\nRegistrar Teleorientação" as uc01
+  usecase "UC-G03-02\nPreencher Ficha\nPré-Hospitalar" as uc02
+  usecase "UC-G03-03\nSolicitar Pré-Admissão" as uc03
+  usecase "UC-G03-04\nRegistrar Recusa\nde Atendimento" as uc04
+  usecase "UC-G03-05\nValidar Prioridade" as uc05
+  usecase "UC-G03-06\nRegistrar Consumo\nde Fármaco" as uc06
+  usecase "UC-G03-07\nConsultar Ficha\nPré-Hospitalar" as uc07
+  usecase "UC-G03-08\nSincronizar Ficha\napós Reconexão" as uc08
+}
+
+regulador -- uc01
+regulador -- uc03
+regulador -- uc07
+equipe -- uc02
+equipe -- uc04
+equipe -- uc06
+equipe -- uc07
+receptora -- uc07
+uc02 -- g2
+uc03 -- g4
+uc06 -- g5
+uc01 -- g6
+uc07 -- g6
+
+uc03 .> uc05 : <<include>>
+uc04 .> uc02 : <<extend>>
+uc06 .> uc02 : <<extend>>
+uc08 .> uc02 : <<extend>>
+
+note right of uc02
+  Pontos de extensão:
+  recusa de atendimento, fármaco administrado,
+  falta de conexão
+end note
+@enduml

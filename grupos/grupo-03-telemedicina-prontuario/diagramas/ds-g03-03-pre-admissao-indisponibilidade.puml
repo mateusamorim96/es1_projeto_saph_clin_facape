@@ -1,0 +1,51 @@
+@startuml ds-g03-03-pre-admissao-indisponibilidade
+title DS-G03-03 – Pré-Admissão com indisponibilidade: sem conexão, leito negado e sem resposta (UC-G03-03: FE-01, FE-03, FE-04)
+skinparam shadowing false
+skinparam defaultFontName DejaVu Sans
+skinparam sequenceMessageAlign center
+autonumber
+
+actor MedicoRegulador as Reg
+actor EquipeIntervencao as Eq
+participant ":Prontuario" as Pr
+participant ":PreAdmissao" as Pa
+participant "Leitos (G4)" as G4
+
+Reg -> Pa : confirmarEnvio()  [RASCUNHO, validação aprovada]
+
+alt sem conexão no momento do envio (FE-03)
+  Pa -> Pa : estado = PENDENTE_DE_ENVIO
+  Pa --> Reg : alerta visível de pedido pendente
+  Pa --> Eq : alerta: acionar a recepção por canal alternativo\n(fora do sistema)
+  ... conexão restabelecida ...
+  Pa -> G4 : pedido_pre_admissao (C3), mesmo evento_id
+  Pa -> Pa : estado = ENVIADA\n(horário do fato original preservado)
+else conexão disponível
+  Pa -> G4 : pedido_pre_admissao (C3)
+  Pa -> Pa : estado = ENVIADA
+end
+
+alt G4 responde negado, com motivo (FE-01)
+  G4 --> Pa : negado(motivo)
+  Pa -> Pa : estado = NEGADA\n(motivo_negativa gravado)
+  Pa -> Pr : voltar a EM_PREENCHIMENTO
+  Pa --> Reg : alerta com o motivo
+  opt regulador decide o desvio
+    Reg -> Reg : nova teleorientação (UC-G03-01)\nou novo pedido (ADR-G03-05, Q3)
+  end
+else G4 não responde no prazo (FE-04, prazo premissa: 60 s)
+  Pa -> Pa : estado = SEM_RESPOSTA
+  Pa --> Reg : alerta e oferta de reenvio manual
+  opt reenvio manual
+    Reg -> Pa : reenviar()
+    Pa -> G4 : pedido_pre_admissao (C3), mesmo evento_id
+    note right of G4
+      Resposta tardia a um pedido
+      SEM_RESPOSTA é aceita e aplicada.
+    end note
+  end
+else G4 responde reservado
+  G4 --> Pa : reservado(reserva_ref)
+  Pa -> Pa : estado = CONFIRMADA
+end
+@enduml

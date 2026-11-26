@@ -1,0 +1,50 @@
+@startuml me-g03-01-estados-prontuario
+title ME-G03-01 – Ciclo de vida do Prontuario (ficha pré-hospitalar) · ciclo central do módulo
+skinparam shadowing false
+skinparam defaultFontName DejaVu Sans
+skinparam stateBackgroundColor #FFFFFF
+skinparam stateBorderColor #5F6368
+hide empty description
+
+state "Aberto" as ABERTO
+state "Em Preenchimento" as EMP
+state "Aguardando Leito" as AGL
+state "Leito Confirmado" as LC
+state "Recusado" as REC
+state "Encerrado" as ENC
+
+[*] --> ABERTO : C2 despacho_ativo recebido\n(RF-G03-03)
+
+ABERTO --> EMP : primeiro registro clínico\n(RF-G03-04, 05, 06)
+ABERTO --> REC : recusa ASSINADA\n(RF-G03-12)
+
+EMP --> AGL : pré-admissão ENVIADA\n(C3 publicado, RF-G03-09)
+EMP --> REC : recusa ASSINADA\n(RF-G03-12)
+
+AGL --> LC : G4 reservou o leito\n(RF-G03-11)
+AGL --> EMP : pré-admissão NEGADA\nou SEM_RESPOSTA\n(RF-G03-11)
+AGL --> AGL : necessidade atualizada,\nnovo pedido (FA-01 do UC-G03-03)
+
+LC --> AGL : deterioração clínica,\nnovo pedido
+LC --> ENC : despacho encerrado\ne nenhum registro PENDENTE
+
+REC --> EMP : recusa REVOGADA\n(FA-03 do UC-G03-04)
+REC --> ENC : despacho encerrado\ne nenhum registro PENDENTE
+
+EMP --> ENC : despacho encerrado\ne nenhum registro PENDENTE
+
+ENC --> [*]
+
+note right of ENC
+  Encerrado só ocorre sem registros PENDENTES.
+  Registros sincronizados depois do encerramento,
+  com ocorrido_em posterior, ficam sinalizados
+  para revisão (FE-02 do UC-G03-02).
+end note
+
+note bottom of AGL
+  Pré-admissão PENDENTE_DE_ENVIO
+  (sem conexão) mantém a ficha
+  em Em Preenchimento.
+end note
+@enduml

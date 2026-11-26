@@ -1,0 +1,67 @@
+@startuml ds-g03-04-ficha-offline-sincronizacao
+title DS-G03-04 – Ficha offline e sincronização (UC-G03-02 e UC-G03-08) · queda de conexão
+skinparam shadowing false
+skinparam defaultFontName DejaVu Sans
+skinparam sequenceMessageAlign center
+autonumber
+
+actor EquipeIntervencao as Eq
+participant "Tablet\n(armazenamento local)" as Tab
+participant "Central\nTelemedicina (G3)" as Cen
+participant "Despacho (G2)" as G2
+participant "Estoque (G5)" as G5
+
+== Abertura da ficha (RF-G03-03) ==
+G2 -> Cen : despacho_ativo (C2)\ndespacho_id, chamado_id, equipe_id
+alt despacho_id já tem ficha
+  Cen --> G2 : ok (idempotente, nenhuma segunda ficha)
+else primeiro C2 do despacho
+  Cen -> Cen : criar Prontuario (ABERTO)
+  Cen --> Tab : ficha disponível no tablet da equipe
+end
+
+== Preenchimento sem conexão ==
+Eq -> Tab : registrarSinaisVitais(valores, coletado_em)
+Tab -> Tab : gravar localmente\nsincronizacao = PENDENTE
+alt gravação local falha (FE-01 do UC-G03-02)
+  Tab --> Eq : alerta imediato,\nregistro NÃO exibido como salvo
+else gravação local ok
+  Tab --> Eq : salvo (modo offline sinalizado)
+end
+Eq -> Tab : registrarProcedimento(tipo, realizado_em)
+Tab -> Tab : gravar localmente\nsincronizacao = PENDENTE
+Eq -> Tab : registrarConsumoFarmaco(item_id, lote,\nquantidade, via, administrado_em)
+alt lote ausente (RN-07)
+  Tab --> Eq : bloqueia a gravação
+else lote informado
+  Tab -> Tab : gravar localmente\nsincronizacao = PENDENTE
+end
+
+== Reconexão e sincronização ==
+Tab -> Tab : ordenar pendentes por ocorrido_em\n(horário do fato, não do envio)
+loop para cada registro pendente
+  Tab -> Cen : enviar(registro, evento_id)
+  alt evento_id já recebido antes
+    Cen --> Tab : ok (idempotente, nenhuma cópia criada)
+  else registro novo
+    Cen -> Cen : gravar RegistroClinico
+    opt o registro é ConsumoFarmaco
+      Cen -> G5 : consumo_farmaco (C4)\nitem_id, lote, quantidade, via, horario,\nresponsavel_id, prontuario_id
+      note right of G5 : A baixa de estoque é de G5.
+    end
+    opt ocorrido_em posterior ao encerramento do despacho (FE-02)
+      Cen -> Cen : sinalizado_para_revisao = verdadeiro
+    end
+    Cen --> Tab : ok
+  end
+  Tab -> Tab : sincronizacao = SINCRONIZADO
+end
+
+alt nova queda durante a sincronização
+  Tab -> Tab : registros sem confirmação\npermanecem PENDENTE
+  note right of Tab
+    Nenhum registro é descartado.
+    Nova tentativa na próxima reconexão.
+  end note
+end
+@enduml

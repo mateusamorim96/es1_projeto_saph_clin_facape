@@ -1,0 +1,51 @@
+@startuml da-g03-02-registrar-recusa
+title DA-G03-02 – Decisões do fluxo "Registrar Recusa de Atendimento" (UC-G03-04)
+skinparam shadowing false
+skinparam defaultFontName DejaVu Sans
+skinparam activityBackgroundColor #FFFFFF
+skinparam activityBorderColor #5F6368
+
+|EquipeIntervencao|
+start
+:Aciona "Registrar recusa de atendimento";
+:Avalia a consciência do paciente\ne informa os riscos da recusa;
+|Sistema G3|
+if (Consciência confirmada?) then (não)
+  :Impede o registro da recusa;
+  :Orienta a continuidade do atendimento;
+  stop
+else (sim)
+endif
+|EquipeIntervencao|
+:Registra motivo e testemunha\n(nome e vínculo);
+if (Paciente é menor ou incapaz?) then (sim)
+  :Representante legal assina\n(FA-01);
+else (não)
+  :Paciente assina;
+endif
+|Sistema G3|
+if (Assinatura do paciente\nou representante obtida?) then (não)
+  :Registra motivo_sem_assinatura;
+  :Testemunha assina e\nregulador dá ciência;
+  :RecusaAtendimento = NAO_ASSINADA\nalerta o regulador;
+  stop
+else (sim)
+endif
+|EquipeIntervencao|
+:Testemunha assina;
+|MedicoRegulador|
+:Dá ciência da recusa;
+|Sistema G3|
+if (Três evidências presentes?\n(assinatura, testemunha, ciência)) then (não)
+  :Mantém em RASCUNHO\ne indica a evidência faltante;
+  stop
+else (sim)
+endif
+:RecusaAtendimento = ASSINADA\nFicha = RECUSADO;
+:Publica RECUSA_ASSINADA para G6\n(justificativa = motivo);
+if (Paciente muda de ideia depois?) then (sim)
+  :Registra revogação (FA-03)\nFicha volta a EM_PREENCHIMENTO;
+else (não)
+endif
+stop
+@enduml
